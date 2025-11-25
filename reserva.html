@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reserva de Viaje</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <style>
+        body {
+            background: #f2f2f2;
+        }
+        .form-container {
+            background: white;
+            width: 70%;
+            margin: auto;
+            margin-top: 40px;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <h2>Reserva tu Viaje</h2>
+
+    <h4>Datos Personales</h4>
+    <form id="formReserva">
+
+        <div class="form-group">
+            <label>Nombre completo</label>
+            <input type="text" class="form-control" id="nombre" required>
+        </div>
+
+        <div class="form-group">
+            <label>Correo electrónico</label>
+            <input type="email" class="form-control" id="email" required>
+        </div>
+
+        <div class="form-group">
+            <label>Teléfono</label>
+            <input type="text" class="form-control" id="telefono" required>
+        </div>
+
+        <hr>
+
+        <h4>Información del Viaje</h4>
+
+        <div class="form-group">
+            <label>Origen</label>
+            <select id="origen" class="form-control" onchange="calcularPrecio()" required>
+                <option value="">Seleccione origen</option>
+                <option value="Colombia">Colombia</option>
+                <option value="España">España</option>
+                <option value="México">México</option>
+                <option value="Argentina">Argentina</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Destino</label>
+            <select id="destino" class="form-control" onchange="calcularPrecio()" required>
+                <option value="">Seleccione destino</option>
+                <option value="Colombia">Colombia</option>
+                <option value="España">España</option>
+                <option value="México">México</option>
+                <option value="Argentina">Argentina</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Precio estimado</label>
+            <input type="text" class="form-control" id="precio" readonly>
+        </div>
+
+        <button type="submit" class="btn btn-success">Confirmar Reserva</button>
+    </form>
+</div>
+
+<script>
+function calcularPrecio() {
+    const origen = document.getElementById("origen").value;
+    const destino = document.getElementById("destino").value;
+    const precioInput = document.getElementById("precio");
+
+    if (!origen || !destino) {
+        precioInput.value = "";
+        return;
+    }
+
+    if (origen === destino) {
+        precioInput.value = "El origen y destino no pueden ser iguales";
+        return;
+    }
+
+    // Precio aleatorio entre 300 y 900 USD
+    const precio = Math.floor(Math.random() * (900 - 300 + 1)) + 300;
+    precioInput.value = precio; // solo el número para enviar a MySQL
+}
+
+// Evento para enviar la reserva
+document.getElementById("formReserva").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const datos = {
+        nombre: document.getElementById("nombre").value,
+        email: document.getElementById("email").value,
+        telefono: document.getElementById("telefono").value,
+        origen: document.getElementById("origen").value,
+        destino: document.getElementById("destino").value,
+        precio: document.getElementById("precio").value
+    };
+
+    try {
+        const res = await fetch("http://localhost:3000/guardar-reserva", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(datos)
+        });
+
+        const data = await res.json();
+
+        if (data.ok) {
+            alert(data.mensaje);
+            document.getElementById("formReserva").reset();
+            document.getElementById("precio").value = "";
+        } else {
+            alert("Error: " + data.error);
+        }
+    } catch (err) {
+        console.error(err);
+        alert("No se pudo conectar con el servidor");
+    }
+});
+</script>
+
+</body>
+</html>
